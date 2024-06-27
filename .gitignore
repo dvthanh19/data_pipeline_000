@@ -1,0 +1,3 @@
+\src\realtime_streaming_ecommerce\src\main\java\realtime_streaming_ecommerce\DataStreamJob_mysql.java
+\src\realtime_streaming_ecommerce\src\main\java\realtime_streaming_ecommerce\DataStreamJob_mongo.java
+*.jar
