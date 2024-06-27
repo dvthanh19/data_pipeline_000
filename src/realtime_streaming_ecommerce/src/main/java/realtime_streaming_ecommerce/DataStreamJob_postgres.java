@@ -332,6 +332,6 @@ public class DataStreamJob_postgres
 
         // =====================================================================================================================================
         // SUBMIT JOB ==========================================================================================================================
-        env.execute("Flink Ecommerce Realtime Streaming");
+        env.execute("[PostgreSQL] Flink Ecommerce Realtime Streaming");
     }
 }

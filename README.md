@@ -17,8 +17,8 @@
 - Next step, data will be stored in both **PostgreSQL** and **Elasticsearch** database for further analysis.
 - Finally, **Kibana** is used for a simple visualization.  
 
-## Preparation
 
+**Note**: This project ont only stream data into PostgreSQL but also the MySQL and MongoDB. You can see the commands for these 2 database and whole project in file [commands.md](./commands.md).
 
 ## Getting started
 
@@ -28,7 +28,7 @@ docker compose -f docker-compose.yml -p demo up -d
 
 Go into Kafka broker container, and execute the command to check whether it lives or not:
 ```shell
-kafka topics --list --bootstrap-server broker:29092
+kafka-topics --list --bootstrap-server broker:29092
 ```
 
 Remember to install *faker*, *confluent_kafka*, and *singlejson*
@@ -77,20 +77,10 @@ As a result, you can see there is a *.jar* file in *./target* directory. Now let
 ~/flink-1.19.1/bin/flink run -c realtime_streaming_ecommerce.DataStreamJob target/realtime_streaming_ecommerce-1.0-SNAPSHOT.jar
 ```
 
-After submitting sucessfully tasks into Flink, the data streamed from Kafka will be processed and write down to Postgres. Go into Postgres container and execute some commands to check the data
+After submitting sucessfully tasks into Flink, the data streamed from Kafka will be processed and write down to Postgres. Go into Postgres container and execute some commands to check the data.
 ```shell
+# PostgreSQL
 psql -U postgres
-```
-With other database, use these below commands
-```shell
-# MySQL
-mysql -h localhost -P 3306 -u mysql -p
-```
-
-
-```sql
-\l -- Show databases
-\d -- Show tables in database
 ```
 
 Applying some querries to see the data inside tables;
@@ -158,7 +148,7 @@ After that, *Save and return* and arrange the position of this chart in the big 
 
 ![Data Dashboard](./img/data_dashboard.png)
 
-Besides, we can configure the refresh cycle (20 sec). As a result, the changes in data will be reflected in the dashboard ervery 20 seconds
+Besides, we can configure the refresh cycle (20 sec). As a result, the changes in data will be reflected in the dashboard ervery 20 seconds.
 
 
 
