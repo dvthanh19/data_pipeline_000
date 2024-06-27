@@ -1,0 +1,190 @@
+version: '3.8'
+
+services:
+  # # ----------------------------------------------------------------------- 
+  # # - ZOOKEEPER -----------------------------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo 'ruok' | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+
+  # # ----------------------------------------------------------------------- 
+  # # - KAFKA BROKER --------------------------------------------------------
+  broker:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: broker
+    container_name: broker
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    healthcheck:
+      test: [ "CMD", "bash", "-c", 'nc -z localhost 9092' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+
+  # # ----------------------------------------------------------------------- 
+  # # - POSTGRES ------------------------------------------------------------
+  # postgres:
+  #   image: postgres:latest
+  #   container_name: postgres
+  #   ports:
+  #     - "5432:5432"
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: 1234
+  #     POSTGRES_DB: mydb
+  #   healthcheck:
+  #     test: [ "CMD", "pg_isready", "-U", "postgres" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  
+
+  # # ----------------------------------------------------------------------- 
+  # # - MYSQL ---------------------------------------------------------------
+  # mysql:
+  #   image: mysql:latest
+  #   container_name: mysql
+  #   ports:
+  #     - "3306:3306"
+  #   restart: always
+  #   environment:
+  #     MYSQL_USER: mysql
+  #     MYSQL_PASSWORD: 1234
+  #     MYSQL_ROOT_PASSWORD: 1234
+  #     MYSQL_DATABASE: mydb
+  #   healthcheck:
+  #     test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+
+  # # ----------------------------------------------------------------------- 
+  # # - ORACLE --------------------------------------------------------------
+  # oracle-db:
+  #   image: oracle/database:19.3.0-ee
+  #   container_name: oracle-db
+  #   ports:
+  #     - "1521:1521"
+  #   restart: always
+  #   environment:
+  #     ORACLE_SID: ORCLCDB
+  #     ORACLE_PDB: ORCLPDB1
+  #     ORACLE_PWD: 1234
+  #     ORACLE_CHARACTERSET: AL32UTF8
+  #     ORACLE_EDITION: EE
+  #     ORACLE_HOME: /opt/oracle/product/19c/dbhome_1
+  #     ORACLE_BASE: /opt/oracle
+  #   healthcheck:
+  #     test: [ "CMD", "sqlplus", "-L", "sys/1234@//localhost:1521/ORCLCDB as sysdba", "@healthcheck.sql" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  # oracle-db:
+  #   image: store/oracle/database-enterprise:12.2.0.1-slim
+  #   container_name: oracle-db
+  #   ports:
+  #     - "1521:1521"
+  #   environment:
+  #     ORACLE_SID: ORCLCDB
+  #     ORACLE_PDB: ORCLPDB1
+  #     ORACLE_PWD: 1234
+  #     ORACLE_CHARACTERSET: AL32UTF8
+  #     ORACLE_EDITION: EE
+  #     ORACLE_HOME: /opt/oracle/product/19c/dbhome_1
+  #     ORACLE_BASE: /opt/oracle
+  #   healthcheck:
+  #     test: [ "CMD", "sqlplus", "-L", "sys/1234@//localhost:1521/ORCLCDB as sysdba", "@healthcheck.sql" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+
+  # ----------------------------------------------------------------------- 
+  # - MONGODB -------------------------------------------------------------
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=1234
+      - MONGO_INITDB_DATABASE=mydb
+    volumes:
+      - ./mongo_initdb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # mongo-express:
+  #   image: mongo-express
+  #   container_name: mongo-express
+  #   ports:
+  #     - 8082:8081
+  #   restart: always
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: mongo
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: 1234
+  #     ME_CONFIG_MONGODB_URL: mongodb://root:1234@mongo:27017/
+  #     ME_CONFIG_BASICAUTH: false
+
+
+
+  # # ----------------------------------------------------------------------- 
+  # # - ELASTICSEARCH -------------------------------------------------------
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+  #   container_name: es-db
+  #   environment:
+  #     - xpack.security.enabled=false    # Disable username and password
+  #     - discovery.type=single-node    
+  #   ports:
+  #     - 9200:9200
+
+
+  # # ----------------------------------------------------------------------- 
+  # # - KIBANA --------------------------------------------------------------
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.11.1
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   ports:
+  #     - 5601:5601
